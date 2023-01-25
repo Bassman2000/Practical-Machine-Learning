@@ -1,5 +1,5 @@
 ---
-title: "Course Project"
+title: "Practical Machine Learning - Course Project"
 author: "Al Richardson"
 date: "`r Sys.Date()`"
 output: html_document
@@ -18,16 +18,65 @@ For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
+## Loading Packages
+
+```{r packages}
+library(dplyr)
+library(caret)
+library(corrplot)
+library(rpart.plot)
+library(rattle)
+library(randomForest)
 ```
 
-########################################################
+## Loading Data
 
-## Data Cleaning
+```{r data}
+dataPath <-paste('/home/ubuntu/Documents/Courses/',
+                 'Data Science - Specialization/',
+                 'Practical Machine Learning/',
+                 'Course Project/', sep='')
+training <- read.csv(paste(dataPath, 'pml-training.csv', sep=''))
+testing <- read.csv(paste(dataPath, 'pml-testing.csv', sep=''))
 
-1) Convert <i>chr</i> columns to numeric, where possible.
-2) 
+#rm(dataPath)
+```
+           
+## Data Cleaning and Organizing
+
+For clarification the <i>testing</i> set is renamed <i>validation</i>. The <i>training</i> set will be divided into training and test, for the purpose of training the models.
+
+```{r validation}
+validation <- testing
+rm(testing)
+```
+
+Administrative columns (names, dates, etc.) are removed from the training set, along with the target column, <i>classe</i>. All remaining character columns are made numeric.
+
+```{r exclude-columns}
+excludeCols <- c(1:7, 160)
+training2 <- training[-excludeCols]
+rm(excludeCols)
+
+training2 <- training2 %>% mutate_if(is.character, as.numeric)
+training2[is.na(training2)]<-0
+```
+
+Columns with low variance (i.e. low information content) are removed.
+
+```{r low-variance}
+training2 <- select(training2,-nearZeroVar(training2))
+```
+
+A correlation matrix is constructed and set of columns are identified to be removed, in order to minimize highly correlated pairs of columns.
+
+```{r low-correlation}
+corTraining <- cor(training2)
+corCols <- findCorrelation(corTraining)
+training2 <- training2[,-corCols]
+rm(corTraining, corCols)
+```
+
 
 
 Remove columns with very sparse data. For example <i>min_yaw_dumbell</i> is a character column, containing numerical data. Approximately 98% of these data are null, i.e."" or "#DIV/0!". It seems that this column is unlikely to contribute much to the model, although that is not at all certain.
