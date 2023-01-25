@@ -1,0 +1,50 @@
+---
+title: "Course Project"
+author: "Al Richardson"
+date: "`r Sys.Date()`"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Abstract
+
+
+## Introduction
+
+For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+
+When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+
+```{r cars}
+summary(cars)
+```
+
+########################################################
+
+## Data Cleaning
+
+1) Convert <i>chr</i> columns to numeric, where possible.
+2) 
+
+
+Remove columns with very sparse data. For example <i>min_yaw_dumbell</i> is a character column, containing numerical data. Approximately 98% of these data are null, i.e."" or "#DIV/0!". It seems that this column is unlikely to contribute much to the model, although that is not at all certain.
+
+
+
+
+
+
+########################################################
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.

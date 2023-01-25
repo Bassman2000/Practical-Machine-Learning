@@ -1,0 +1,14 @@
+,total_accel_belt,
+[1],gyros_belt_x,total_accel_belt + gyros_belt_x
+[1],gyros_belt_y,total_accel_belt + gyros_belt_x + gyros_belt_y
+[1],gyros_belt_z,total_accel_belt + gyros_belt_x + gyros_belt_y + gyros_belt_z
+[1],gyros_arm_x,total_accel_belt + gyros_belt_x + gyros_belt_y + gyros_belt_z + gyros_arm_x
+[1],gyros_arm_y,total_accel_belt + gyros_belt_x + gyros_belt_y + gyros_belt_z + gyros_arm_x + gyros_arm_y
+[1],gyros_arm_z,total_accel_belt + gyros_belt_x + gyros_belt_y + gyros_belt_z + gyros_arm_x + gyros_arm_y + gyros_arm_z
+[1],gyros_dumbbell_x,total_accel_belt + gyros_belt_x + gyros_belt_y + gyros_belt_z + gyros_arm_x + gyros_arm_y + gyros_arm_z + gyros_dumbbell_x
+[1],gyros_dumbbell_y,total_accel_belt + gyros_belt_x + gyros_belt_y + gyros_belt_z + gyros_arm_x + gyros_arm_y + gyros_arm_z + gyros_dumbbell_x + gyros_dumbbell_y
+[1],gyros_dumbbell_z,total_accel_belt + gyros_belt_x + gyros_belt_y + gyros_belt_z + gyros_arm_x + gyros_arm_y + gyros_arm_z + gyros_dumbbell_x + gyros_dumbbell_y + gyros_dumbbell_z
+[1],gyros_forearm_x,total_accel_belt + gyros_belt_x + gyros_belt_y + gyros_belt_z + gyros_arm_x + gyros_arm_y + gyros_arm_z + gyros_dumbbell_x + gyros_dumbbell_y + gyros_dumbbell_z + gyros_forearm_x
+[1],gyros_forearm_y,total_accel_belt + gyros_belt_x + gyros_belt_y + gyros_belt_z + gyros_arm_x + gyros_arm_y + gyros_arm_z + gyros_dumbbell_x + gyros_dumbbell_y + gyros_dumbbell_z + gyros_forearm_x + gyros_forearm_y
+[1],gyros_forearm_z,total_accel_belt + gyros_belt_x + gyros_belt_y + gyros_belt_z + gyros_arm_x + gyros_arm_y + gyros_arm_z + gyros_dumbbell_x + gyros_dumbbell_y + gyros_dumbbell_z + gyros_forearm_x + gyros_forearm_y + gyros_forearm_z
+[1],classe,total_accel_belt + gyros_belt_x + gyros_belt_y + gyros_belt_z + gyros_arm_x + gyros_arm_y + gyros_arm_z + gyros_dumbbell_x + gyros_dumbbell_y + gyros_dumbbell_z + gyros_forearm_x + gyros_forearm_y + gyros_forearm_z + classe
