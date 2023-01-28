@@ -6,21 +6,29 @@ output: html_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(eval = TRUE, echo = TRUE)
+set.seed(12321)
 ```
 
 ## Abstract
 
+Three predictive model types are used to make predictions on the HAR data set. Accuracy and out-of-sample error are calculated for each model and one is found to meet the target standard (Accuracy > $99\%$). Predictions are made on the validation (initially named 'testing' set) and used to answer ($100\%$ correct) the final quiz in course Practical Machine Learning.
 
 ## Introduction
 
-For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+This document presents the steps, and associated code, required to generate each of Random Forest (RF), Generalized Boosted Regression (GBM), and Decision Tree (DT) predictive models for the HAR data, with the <i>classe</i> as the target classification variable. The process happens in several steps.
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+1) Load R packages and data.
+2) Remove administrative data.
+3) Remove low-variance and highly correlated data.
+4) Split training data into test and train data sets.
+5) Build the models, generate confusion matrices and determine Accuracy.
+6) Evaluate out-of-sample error.
+7) Apply selected model to validation set for use in quiz.
 
 ## Loading Packages
 
-```{r packages}
+```{r, packages, warning=FALSE, message=FALSE}
 library(dplyr)
 library(caret)
 library(corrplot)
@@ -31,69 +39,153 @@ library(randomForest)
 
 ## Loading Data
 
-```{r data}
+```{r, data}
 dataPath <-paste('/home/ubuntu/Documents/Courses/',
                  'Data Science - Specialization/',
                  'Practical Machine Learning/',
-                 'Course Project/', sep='')
+                 'Practical-Machine-Learning---Course-Project/', sep='')
+
 training <- read.csv(paste(dataPath, 'pml-training.csv', sep=''))
 testing <- read.csv(paste(dataPath, 'pml-testing.csv', sep=''))
+```
 
-#rm(dataPath)
+```{r, include=FALSE}
+rm(dataPath)
 ```
            
 ## Data Cleaning and Organizing
 
-For clarification the <i>testing</i> set is renamed <i>validation</i>. The <i>training</i> set will be divided into training and test, for the purpose of training the models.
+For clarification the <i>testing</i> set is renamed <i>validation</i>. The <i>training</i> set will be divided into <i>train</i> and <i>test</i>, for the purpose of training the models.
 
-```{r validation}
+```{r, validation}
 validation <- testing
 rm(testing)
 ```
 
-Administrative columns (names, dates, etc.) are removed from the training set, along with the target column, <i>classe</i>. All remaining character columns are made numeric.
+Administrative columns (names, date-time stamps, etc.) are removed from the training set, along with the target column, <i>classe</i>. All remaining character columns are made numeric.
 
-```{r exclude-columns}
+```{r, exclude-columns, warning=FALSE}
 excludeCols <- c(1:7, 160)
 training2 <- training[-excludeCols]
-rm(excludeCols)
 
 training2 <- training2 %>% mutate_if(is.character, as.numeric)
 training2[is.na(training2)]<-0
 ```
 
+```{r, include=FALSE}
+rm(excludeCols)
+```
+
 Columns with low variance (i.e. low information content) are removed.
 
-```{r low-variance}
+```{r, low-variance}
 training2 <- select(training2,-nearZeroVar(training2))
 ```
 
-A correlation matrix is constructed and set of columns are identified to be removed, in order to minimize highly correlated pairs of columns.
+A correlation matrix is constructed and a set of columns is identified, to be removed in order to minimize highly correlated pairs of columns.
 
-```{r low-correlation}
+```{r, low-correlation}
 corTraining <- cor(training2)
 corCols <- findCorrelation(corTraining)
 training2 <- training2[,-corCols]
+```
+
+```{r, include=FALSE}
 rm(corTraining, corCols)
 ```
 
+The target column is added back to the training set.
 
-
-Remove columns with very sparse data. For example <i>min_yaw_dumbell</i> is a character column, containing numerical data. Approximately 98% of these data are null, i.e."" or "#DIV/0!". It seems that this column is unlikely to contribute much to the model, although that is not at all certain.
-
-
-
-
-
-
-########################################################
-
-## Including Plots
-
-You can also embed plots, for example:
-
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r, target-column}
+training2$classe <- as.factor(training$classe)
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Finally, the training set is split into <i>train</i> : <i>test</i> sets at $70\%$ : $30\%$.
+
+```{r, train-test-split, message=FALSE}
+train <- training2 %>% sample_frac(0.70)
+test  <- anti_join(training2, train)
+```
+
+```{r, include=FALSE}
+rm(training, training2)
+```
+
+
+## Model Building
+
+Three types of models will be compared, namely Decision Tree (DT), Random Forest (RF), and Generalized Boosted Regression (GBR). Each model will be set to use 5-fold cross validation.
+
+```{r training-controls}
+trCtl <- trainControl(method = 'cv', number = 5)
+rpCtl <- rpart.control(minsplit = 1000, xval = 5)
+```
+
+Each model is trained, predictions are made on the test set, the confusion matrix is generated, and the accuracy examined. 
+
+The Accuracy value is calculated via the confusion matrix comparing predictions and the test set. The errors in this comparison are an estimation of the out-of-sample error, as the test set is not used in training. Thus the estimated out-of-sample error will simply be $1-$Accuracy.    
+
+#### Decision Tree Model
+
+```{r, decision-tree-model}
+modelDT <- rpart(classe ~ ., data = train, 
+                 control = rpCtl, method = "class")
+predDT <- predict(modelDT, test, type = "class")
+cmDT <- confusionMatrix(predDT, test$classe)
+cmDT$table
+
+accDT <- cmDT$overall['Accuracy']
+accDT
+```
+
+The accuracy for this method is rather low, at `r paste0(round(accDT * 100, 2), "%")`.<br><br> 
+
+#### Generalized Boosted Regression Model
+
+```{r, GBM-model}
+modelGBM <- train(classe~., data = train, method = 'gbm',
+                  trControl = trCtl, verbose = F)
+
+predGBM <- predict(modelGBM, test)
+cmGBM <- confusionMatrix(predGBM, test$classe)
+cmGBM$table
+
+accGBM <- cmGBM$overall['Accuracy']
+accGBM
+```
+
+```{r, cleanup_1, include=FALSE}
+#I've had some memory problems, so I'm going to run a quick garbage collection
+gc()
+```
+
+The accuracy for this method is much better (`r paste0(round(accGBM * 100, 2), "%")`), but still less than the goal (Accuracy > $99\%$).<br><br>
+
+#### Random Forest Model
+
+```{r, random-forest-model}
+modelRF <- randomForest(classe~., data = train, ntree = 500, 
+                        na.action = na.fail, trControl = trCtl)
+
+predRF <- predict(modelRF, test, type='class')
+cmRF <- confusionMatrix(predRF, test$classe)
+cmRF$table
+
+accRF <- cmRF$overall['Accuracy']
+accRF
+```
+
+```{r, cleanup_2, include=FALSE}
+rm(trCtl, rpCtl)
+gc()
+```
+
+The accuracy for the random forest model satisfies the requirements with an accuracy of `r paste0(round(accRF * 100, 2), "%")`. This is the model we select.<br><br>
+
+## Results
+The RF model is applied to the validation set, the results of which are the data required for the associated quiz.
+
+```{r, results}
+results <- predict(modelRF, validation)
+results
+```

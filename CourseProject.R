@@ -11,7 +11,8 @@ library(randomForest)
 dataPath <-paste('/home/ubuntu/Documents/Courses/',
                  'Data Science - Specialization/',
                  'Practical Machine Learning/',
-                 'Course Project/', sep='')
+                 '/Practical-Machine-Learning---Course-Project/', sep='')
+
 training <- read.csv(paste(dataPath, 'pml-training.csv', sep=''))
 testing <- read.csv(paste(dataPath, 'pml-testing.csv', sep=''))
            
@@ -74,7 +75,6 @@ cmDecTree <- confusionMatrix(predDecTree, test$classe)
 ################ Random Forest Model #######################
 ############################################################
 
-#modelRF <- train(classe~., data = train, method = 'rf')
 modelRF <- randomForest(classe~., data = train, ntree = 500, 
                         na.action = na.fail, trControl = trCtl)
 
